@@ -1,4 +1,4 @@
-# Formalizing Verification in Lean – FUB Block Course 2026
+# Formalized Math in LEAN – FUB Block Course 2026
 
 ## Announcements
 
