@@ -342,3 +342,6 @@ example (P Q : Prop) : P ∧ Q → P := by sorry
 -- axioms don't require proofs!
 -- but this one is unnecessary, since it is inferred by our type system
 axiom and_left_axiom (P Q : Prop) : P ∧ Q → P
+
+-- Just a small test of git commit
+#check hello
