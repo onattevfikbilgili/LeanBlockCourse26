@@ -221,11 +221,36 @@ END_MARKER = "<!-- end announcements -->"
 RECENT_DAYS = 3
 
 
-def parse_announcement_date(line: str) -> date | None:
-    """Extract date from an announcement bullet line."""
+def parse_announcement(line: str) -> tuple[date | None, str]:
+    """Extract date and body text from an announcement bullet line."""
     if m := ANNOUNCE_DATE_RE.match(line):
-        return date.fromisoformat(m.group(1))
-    return None
+        d = date.fromisoformat(m.group(1))
+        # Strip the `- **YYYY-MM-DD:** ` prefix to get the body
+        body = line[m.end():].strip()
+        return d, body
+    return None, line.lstrip("- ").strip()
+
+
+def inline_md_to_html(text: str) -> str:
+    """Convert basic inline markdown (**bold** and `code`) to HTML."""
+    text = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", text)
+    text = re.sub(r"`(.+?)`", r"<code>\1</code>", text)
+    return text
+
+
+def format_date_label(d: date) -> str:
+    """Format date as 'Mon, Mar 3' inside a just-the-docs label pill."""
+    # e.g. "Mon, Mar 3"
+    text = d.strftime("%a, %b %-d")
+    return f'<span class="label label-yellow">{text}</span>'
+
+
+def render_announcement(d: date | None, body: str) -> str:
+    """Render a single announcement as an HTML paragraph with date label."""
+    html_body = inline_md_to_html(body)
+    if d is not None:
+        return f"<p>{format_date_label(d)} {html_body}</p>"
+    return f"<p>{html_body}</p>"
 
 
 def inject_announcements() -> None:
@@ -244,34 +269,32 @@ def inject_announcements() -> None:
         return
 
     cutoff = date.today() - timedelta(days=RECENT_DAYS)
-    recent = []
-    older = []
+    recent: list[tuple[date | None, str]] = []
+    older: list[tuple[date | None, str]] = []
     for line in bullets:
-        d = parse_announcement_date(line)
+        d, body = parse_announcement(line)
         if d is not None and d < cutoff:
-            older.append(line)
+            older.append((d, body))
         else:
-            recent.append(line)
+            recent.append((d, body))
 
     parts: list[str] = []
 
     if recent:
-        parts.append('<blockquote class="highlight" markdown="1">')
-        parts.append("**Announcements**")
-        parts.append("")
-        for line in recent:
-            parts.append(line)
+        parts.append('<blockquote class="highlight">')
+        for d, body in recent:
+            parts.append(render_announcement(d, body))
         parts.append("</blockquote>")
         parts.append("")
 
     if older:
-        parts.append("<details markdown=\"1\">")
+        parts.append("<details>")
         summary = "Older announcements" if recent else "Announcements"
         parts.append(f"<summary>{summary}</summary>")
-        parts.append("")
-        for line in older:
-            parts.append(line)
-        parts.append("")
+        parts.append('<blockquote class="highlight">')
+        for d, body in older:
+            parts.append(render_announcement(d, body))
+        parts.append("</blockquote>")
         parts.append("</details>")
         parts.append("")
 
