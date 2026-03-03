@@ -80,9 +80,7 @@ def generate() -> str:
         if pdf := find_slides(part):
             rel = pdf.relative_to(ROOT)
             lines.append("")
-            lines.append("| | |")
-            lines.append("|---|---|")
-            lines.append(f"| **Slides** | [{pdf.name}]({rel}) |")
+            lines.append(f"**Slides:** [{pdf.name}]({rel})")
 
         # Sections
         sections = find_sections(part)
