@@ -218,7 +218,39 @@ example (P Q : Prop) : P → Q → P := fun p _ => p
 
 -- Exercise 1.1
 -- State and prove that if `P → Q` and `P → R`, then `P → (Q ∧ R)`.
+example (P Q R : Prop) (h₁ : P → Q) (h₂ : P → R) : P → (Q ∧ R) := by
+  -- First step if we are lost: simplify the goal as much as possible!
+  intro p          -- top level connective in goal is `→`, so we use `intro`
+  constructor      --  top level connective in goal is `∧`, so we use `constructor`
+  · have q : Q := by -- `let` is also appropriate here
+      exact h₁ p  
+    exact q
+  · have r : R := by -- `let` is also appropriate here
+      exact h₂ p    
+    exact r
 
+-- We can simplify ...
+example (P Q R : Prop) (h₁ : P → Q) (h₂ : P → R) : P → (Q ∧ R) := by
+  intro p
+  constructor
+  · have q : Q := h₁ p  
+    exact q
+  · have r : R := h₂ p    
+    exact r
+
+-- ... and simplify ...
+example (P Q R : Prop) (h₁ : P → Q) (h₂ : P → R) : P → (Q ∧ R) := by
+  intro p
+  constructor
+  · exact h₁ p  
+  · exact h₂ p    
+
+-- ... and simplify ...
+example (P Q R : Prop) (h₁ : P → Q) (h₂ : P → R) : P → (Q ∧ R) := by
+  intro p
+  exact ⟨h₁ p, h₂ p⟩
 
 -- Exercise 1.2
--- Also give a clean term mode version of this
+-- ... and finally get a simple term proof.
+example (P Q R : Prop) (h₁ : P → Q) (h₂ : P → R) : P → (Q ∧ R) :=
+  fun p => ⟨h₁ p, h₂ p⟩
