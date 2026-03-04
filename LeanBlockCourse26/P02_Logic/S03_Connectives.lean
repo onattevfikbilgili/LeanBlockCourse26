@@ -9,6 +9,7 @@ import Mathlib.Tactic.Basic
 import Mathlib.Tactic.Cases
 import Mathlib.Tactic.TFAE
 import Mathlib.Logic.Basic
+import LeanBlockCourse26.CodeGolf
 
 /-
 # Logical Connectives
