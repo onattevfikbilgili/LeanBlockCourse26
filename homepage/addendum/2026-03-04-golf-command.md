@@ -35,12 +35,8 @@ Wrap any declaration with `#golf`:
   intro ⟨p, q⟩
   exact ⟨q, p⟩
 -- Golf: 20 chars | term: 25 nodes | pp: 30 chars | axioms: none
-```
 
-For named declarations, `#golf` also reports the elaborated proof term size, pretty-printed length, and which foundational axioms the proof depends on:
-
-```lean
-#golf theorem em (P : Prop) : P ∨ ¬P := by exact Classical.em P
+#golf example (P : Prop) : P ∨ ¬P := by exact Classical.em P
 -- Golf: 18 chars | term: 5 nodes | pp: 23 chars | axioms: 3 (Classical.choice, propext, Quot.sound)
 ```
 
