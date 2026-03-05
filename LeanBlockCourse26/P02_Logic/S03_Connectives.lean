@@ -704,3 +704,179 @@ parses as `(P ∧ R) ∨ ((P ∧ S) ∨ ((Q ∧ R) ∨ (Q ∧ S)))`. This means
 -- This unfortunately does not work ...
 -- example (P Q R S : Prop) : ((P ∧ Q) ∨ R) ∧ S → (P ∨ R) ∧ (Q ∨ R) ∧ S :=
 --   fun ⟨⟨p, q⟩ | r, s⟩ ↦ ⟨p | _, q | _, s⟩ | ⟨r | _, r | _, s⟩
+
+/-
+## Working with Equivalence (↔) in the goal
+
+To prove `P ↔ Q`, we need to prove both `P → Q` and `Q → P`. We can:
+
+- Use `apply Iff.intro` explicitly
+- Use `constructor` as shorthand
+- Use angle bracket notation with two lambda expressions
+-/
+
+#check Iff        -- Prop
+#check Iff.intro  -- (mp : a → b) (mpr : b → a) : a ↔ b
+
+/-
+Even though you can think of `P ↔ Q` as `(P → Q) ∧ (Q → P)`,
+under the hood lean models this directly as a structure.
+This also tells you where the `.mp` and `.mpr` from earler are from.
+
+structure Iff (a b : Prop) : Prop where
+  intro ::
+  mp : a → b
+  mpr : b → a
+-/
+
+-- We can explicitly invoke `Iff.intro` through `apply` ...
+example (P Q : Prop) (p_to_q : P → Q) (q_to_p : Q → P) : P ↔ Q := by
+  apply Iff.intro
+  · exact p_to_q
+  · exact q_to_p
+
+-- ... or through `exact` ...
+example (P Q : Prop) (p_to_q : P → Q) (q_to_p : Q → P) : P ↔ Q := by
+  exact Iff.intro p_to_q q_to_p
+
+-- ... but the `constructor` tactic also works ...
+example (P Q : Prop) (p_to_q : P → Q) (q_to_p : Q → P) : P ↔ Q := by
+  constructor
+  · exact p_to_q
+  · exact q_to_p
+
+-- ... as do `⟨...⟩` brackets ...
+example (P Q : Prop) (p_to_q : P → Q) (q_to_p : Q → P) : P ↔ Q := by
+  exact ⟨p_to_q, q_to_p⟩
+
+-- ... which also give a nice compact term mode proof.
+example (P Q : Prop) (p_to_q : P → Q) (q_to_p : Q → P) : P ↔ Q :=
+  ⟨p_to_q, q_to_p⟩
+
+-- But for all of these the order of the underlying structure was used.
+-- If you want to avoid this, you need to instanciate it with names.
+example (P Q : Prop) (p_to_q : P → Q) (q_to_p : Q → P) : P ↔ Q :=
+  { mpr := q_to_p, mp := p_to_q }
+
+/-
+## Using Equivalence in hypotheses
+
+To use `h : P ↔ Q`, we can:
+- Access forward/backward directions with `h.mp` / `h.mpr`
+- Use `rw` to rewrite equivalents
+- Destructure with `obtain` or `cases`
+-/
+
+-- Using `.mp` (modus ponens) and `.mpr` (reverse) ...
+example (P Q : Prop) (h : P ↔ Q) (p : P) : Q := by
+  exact h.mp p
+
+example (P Q : Prop) (h : P ↔ Q) (q : Q) : P := by
+  exact h.mpr q
+
+-- ... which gives term mode proofs ...
+example (P Q : Prop) (h : P ↔ Q) (p : P) : Q := h.mp p
+example (P Q : Prop) (h : P ↔ Q) (q : Q) : P := h.mpr q
+
+-- ... and alternatuvely we can use `1` and `2` to access the attributes ...
+example (P Q : Prop) (h : P ↔ Q) (p : P) : Q := h.1 p
+example (P Q : Prop) (h : P ↔ Q) (q : Q) : P := h.2 q
+
+-- ... but `left` and `right` do *not* work because there is actually
+-- no `∧` underlying the `↔` ...
+-- example (P Q : Prop) (h : P ↔ Q) (p : P) : Q := h.left p
+-- example (P Q : Prop) (h : P ↔ Q) (p : P) : P := h.right q
+
+-- ... but we can still also destructure equivalences using `obtain` ...
+example (P Q : Prop) (h : P ↔ Q) (p : P) : Q := by
+  obtain ⟨p_to_q, _⟩ := h
+  exact p_to_q p
+
+-- ... as well as `cases` ...
+example (P Q : Prop) (h : P ↔ Q) (p : P) : Q := by
+  cases h with
+  | intro mp mpr => exact mp p
+
+-- ... and `rcases`!
+example (P Q : Prop) (h : P ↔ Q) (p : P) : Q := by
+  rcases h with ⟨p_to_q, _⟩
+  exact p_to_q p
+
+-- Recall from P02S01, that we can `rw` with equivalences.
+example (P Q R : Prop) (h : P ↔ Q) (q_to_r : Q → R) : P → R := by
+  rw [h]
+  exact q_to_r
+
+/-
+## The `trans` tactic
+
+The `trans` tactic allows us to chain together equivalences (or equalities) by introducing an intermediate statement.
+In the following example, we prove that `B ↔ C` by chaining three equivalences:
+
+- From `A ↔ B` we get `B ↔ A` by symmetry,
+- Then we use `A ↔ D`,
+- And finally, from `C ↔ D` we get `D ↔ C` by symmetry.
+
+This lets us conclude `B ↔ C`. It is used around 400 times in mathlib.
+-/
+
+example (A B C D : Prop) (h₁ : C ↔ D) (h₂ : A ↔ B) (h₃ : A ↔ D) : B ↔ C := by
+  rw [h₃] at h₂
+  rw [h₂] at h₁
+  exact h₁.symm
+
+example (A B C D : Prop) (h₁ : C ↔ D) (h₂ : A ↔ B) (h₃ : A ↔ D) : B ↔ C := by
+  rw [h₁, h₃.symm, h₂]
+
+example (A B C D : Prop) (h₁ : C ↔ D) (h₂ : A ↔ B) (h₃ : A ↔ D) : B ↔ C := by
+  trans A -- opens two goals: `B ↔ A` and `A ↔ C`
+  · exact h₂.symm
+  · rw [← h₁] at h₃
+    exact h₃
+
+example (A B C D : Prop) (h₁ : C ↔ D) (h₂ : A ↔ B) (h₃ : A ↔ D) : B ↔ C := by
+  trans A -- opens two goals: `B ↔ A` and `A ↔ C`
+  · exact h₂.symm
+  · trans D
+    · exact h₃
+    · exact h₁.symm
+
+/-
+## The Following Are Equivalent (TFAE)
+
+The `TFAE` tactic is used to state that all propositions in a list are equivalent.
+This is useful when you have multiple propositions that are logically equivalent
+and you want to prove their equivalence in a structured way.
+
+Key tactics:
+- `tfae_have` to introduce equivalences between propositions
+- `tfae_finish` to conclude the proof of equivalence
+
+It is used around 300 times in mathlib.
+-/
+
+example (P Q R : Prop)
+    (f : P → Q) (g : Q → R) (h : R → P) :
+    [P, Q, R].TFAE := by  -- `[P, Q, R] : List Prop` we have seen in P01S05
+  tfae_have 1 → 2 := by
+    intro h
+    exact f h -- of course we could have also just done `:= f`
+  tfae_have 2 → 3 := g
+  tfae_have 3 → 1 := h
+  tfae_finish
+
+/-
+## Exercise Block B03
+
+Remember:
+AND – use ⟨ ⟩ with ,
+OR  - use ( ) with |
+-/
+
+-- Prove the associativity of disjunction: `(P ∨ Q) ∨ R ↔ P ∨ (Q ∨ R)`.
+example (P Q R : Prop) : (P ∨ Q) ∨ R ↔ P ∨ (Q ∨ R) := by
+  sorry
+
+-- Prove that `OR` distributes over `AND` in both directions.
+example (P Q R : Prop) : (P ∧ Q) ∨ R ↔ (P ∨ R) ∧ (Q ∨ R) := by
+  sorry
