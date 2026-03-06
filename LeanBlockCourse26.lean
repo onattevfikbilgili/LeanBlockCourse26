@@ -9,5 +9,5 @@ import LeanBlockCourse26.P02_Logic.S04_Negation
 import LeanBlockCourse26.P02_Logic.S05_Quantifiers
 
 import LeanBlockCourse26.P03_SetTheory.S01_SubsetsComplements
--- import LeanBlockCourse26.P03_SetTheory.S02_IntersectionsUnions
+import LeanBlockCourse26.P03_SetTheory.S02_IntersectionsUnions
 -- import LeanBlockCourse26.P03_SetTheory.S03_SetFamilies
