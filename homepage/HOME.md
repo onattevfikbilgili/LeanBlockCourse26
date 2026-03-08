@@ -5,8 +5,22 @@ permalink: /
 ---
 
 <!-- begin announcements -->
-<!-- Injected by generate-outline.py from README.md — do not edit manually -->
-<!-- end announcements -->
+<style>.announcements {  border: 1px solid #e8e8e8; border-left: 4px solid #f0c36d;  border-radius: 4px; margin: 1rem 0; padding: 0;}.announcement-item {  display: flex; gap: 0.5rem;  padding: 0.5rem 1rem; line-height: 1.6;}.announcement-item > .label {  flex-shrink: 0; align-self: baseline;}.announcement-item + .announcement-item {  border-top: 1px solid #f0f0f0;}.announcements summary {  padding: 0.5rem 1rem; cursor: pointer; color: #586069;  font-size: 0.9em;}.announcements details {  border-top: 1px solid #e8e8e8;}.announcements details .announcement-item:first-child {  border-top: none;}</style>
+<div class="announcements">
+<div class="announcement-item"><span class="label label-yellow">Sun, Mar 8</span><span>Updated P02 and P03 exercise files: named theorems are now <code>example</code>, with <code>#check</code> pointers to the corresponding Mathlib names. Use the Mathlib names in your proofs.</span></div>
+<div class="announcement-item"><span class="label label-yellow">Sun, Mar 8</span><span>New addendum: <a href="https://forduniver.github.io/LeanBlockCourse26/addendum/2026-03-08-theorem-lemma-example-def"><code>theorem</code>, <code>lemma</code>, <code>example</code>, <code>def</code></a>.</span></div>
+<div class="announcement-item"><span class="label label-yellow">Sun, Mar 8</span><span>New addendum: <a href="https://forduniver.github.io/LeanBlockCourse26/addendum/2026-03-08-let-vs-have"><code>let</code> vs <code>have</code> in tactic mode</a>.</span></div>
+<div class="announcement-item"><span class="label label-yellow">Thu, Mar 5</span><span>New addendum: <a href="https://forduniver.github.io/LeanBlockCourse26/addendum/2026-03-05-dot-focusing">When <code>·</code> focusing is optional</a>.</span></div>
+<div class="announcement-item"><span class="label label-yellow">Thu, Mar 5</span><span>New addendum: <a href="https://forduniver.github.io/LeanBlockCourse26/addendum/2026-03-05-vscode-distractions">VS Code distractions</a>.</span></div>
+<div class="announcement-item"><span class="label label-yellow">Wed, Mar 4</span><span>New addendum: <a href="https://forduniver.github.io/LeanBlockCourse26/addendum/2026-03-04-golf-command">Proof length (<code>#golf</code>)</a>.</span></div>
+<details>
+<summary>Older announcements</summary>
+<div class="announcement-item"><span class="label label-yellow">Thu, Mar 5</span><span>Since we went over by 10 minutes, the afternoon session starts at <strong>14:10</strong> instead of 14:00.</span></div>
+<div class="announcement-item"><span class="label label-yellow">Tue, Mar 3</span><span>Since we went over by 10 minutes, on Wednesday (March 4) we start at <strong>9:40</strong> instead of 9:30.</span></div>
+<div class="announcement-item"><span class="label label-yellow">Mon, Mar 2</span><span>Since we went over by 30 minutes, on Tuesday (March 3) we start at <strong>10:00</strong> instead of 9:30.</span></div>
+<div class="announcement-item"><span class="label label-yellow">Mon, Mar 2</span><span>Uploaded slides for <code>P01_Introduction</code>.</span></div>
+</details>
+</div><!-- end announcements -->
 
 # Formalized Math in Lean
 {: .fs-9 }
