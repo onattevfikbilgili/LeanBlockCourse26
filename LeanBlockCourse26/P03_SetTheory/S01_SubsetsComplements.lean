@@ -497,7 +497,7 @@ example (h₁ : S ⊆ T) : Tᶜ ⊆ Sᶜ :=
   Set.compl_subset_compl.2 h₁
 
 -- Exercise 2.5 (Master)
-example (S : Set α) : Sᶜᶜ = S := by
+theorem compl_compl (S : Set α) : Sᶜᶜ = S := by
   ext s
   rw [mem_compl_iff Sᶜ s, mem_compl_iff S s]
   push_neg
