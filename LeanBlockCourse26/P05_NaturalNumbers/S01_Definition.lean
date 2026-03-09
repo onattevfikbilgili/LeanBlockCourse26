@@ -74,9 +74,9 @@ example : 2 = succ (succ 0) := rfl
 theorem eq_succ_of_ne_zero {n : MyNat} (h : n ≠ 0) :
     ∃ m : MyNat, n = succ m := by
   -- Hint: try `induction n` or just `cases n`
-  cases' n with k
-  · contradiction
-  · use k
+  cases n with
+  | zero => contradiction
+  | succ k => use k
 
 -- Exercise 1.3 (Master)
 -- Turn Exercise 1.2 into a verified algorithm

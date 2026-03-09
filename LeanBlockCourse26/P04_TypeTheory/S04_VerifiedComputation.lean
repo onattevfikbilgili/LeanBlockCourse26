@@ -145,9 +145,10 @@ theorem propFilter_sound (p : α → Prop) [DecidablePred p] (xs : List α) :
 theorem propFilter_sound' (p : α → Prop) [DecidablePred p] (xs : List α) :
     ∀ x ∈ propFilter p xs, p x := by
   intro x hx
-  induction' xs with y ys ih
+  induction xs
   · contradiction
-  · by_cases h : p y
+  next y ys ih =>
+    by_cases h : p y
     · rw [show propFilter p (y :: ys) = y :: propFilter p ys from if_pos h] at hx
       obtain _ | ⟨_, hmem⟩ := hx
       · exact h
@@ -157,35 +158,48 @@ theorem propFilter_sound' (p : α → Prop) [DecidablePred p] (xs : List α) :
 
 #print axioms propFilter_sound'
 
--- Step 2b: prove completeness - everyhting not in the output does not satisfy p.
+-- Step 2b: prove completeness — everything in `xs` but not in the output does not satisfy `p`.
 theorem propFilter_complete (p : α → Prop) [DecidablePred p] (xs : List α) :
     ∀ x, x ∈ xs ∧ x ∉ propFilter p xs → ¬ p x := by
   intro x ⟨x_in_xs, hx⟩ px
   induction xs with
   | nil => contradiction
   | cons y ys ih =>
-      unfold propFilter at *
-      cases x_in_xs with
-       -- `x` is the head of `xs` and not in `ys`
-       | head =>
-          sorry
-       -- `x` is not the head of `xs` and therefore in `ys`
-       | tail _ hmem => 
-          replace ih := ih hmem
-          sorry
+      unfold propFilter at hx
+      split at hx
+      case isTrue h =>
+        cases x_in_xs with
+        | head => exact hx List.mem_cons_self
+        | tail _ hmem => exact ih hmem (fun h' => hx (.tail _ h'))
+      case isFalse h =>
+        cases x_in_xs with
+        | head => exact h px
+        | tail _ hmem => exact ih hmem hx
+
+theorem propFilter_complete' (p : α → Prop) [DecidablePred p] (xs : List α) :
+    ∀ x, x ∈ xs ∧ x ∉ propFilter p xs → ¬ p x := by
+  intro x ⟨x_in_xs, hx⟩ px
+  induction xs
+  · contradiction
+  next y ys ih =>
+    by_cases h : p y
+    · rw [show propFilter p (y :: ys) = y :: propFilter p ys from if_pos h] at hx
+      obtain _ | ⟨_, hmem⟩ := x_in_xs
+      · exact hx List.mem_cons_self
+      · exact ih hmem (fun h' => hx (List.mem_cons_of_mem _ h'))
+    · rw [show propFilter p (y :: ys) = propFilter p ys from if_neg h] at hx
+      obtain _ | ⟨_, hmem⟩ := x_in_xs
+      · exact h px
+      · exact ih hmem hx
 
 -- Step 3: bundle algorithm + proof into Subtype.
+-- Note: we cannot state `∀ x, (x ∈ ys ∧ p x) ∨ (x ∉ ys ∧ ¬ p x)` because
+-- for `x ∉ xs` we have `x ∉ ys` but cannot conclude `¬ p x`.
 def verifiedFilter (p : α → Prop) [DecidablePred p] (xs : List α) :
-    { ys : List α // ∀ x, (x ∈ ys ∧ p x) ∨ (x ∉ ys ∧ ¬ p x) } := by
-  use propFilter p xs
-  intro x
-  by_cases  h : x ∈ propFilter p xs
-  · left; exact ⟨h, propFilter_sound p xs x h⟩
-  · sorry
-    -- have := propFilter_complete p xs x
-    -- right; exact ⟨h, ⟩
+    { ys : List α // (∀ x ∈ ys, p x) ∧ (∀ x, x ∈ xs ∧ x ∉ ys → ¬ p x) } :=
+  ⟨propFilter p xs, propFilter_sound p xs, propFilter_complete p xs⟩
 
--- #eval (verifiedFilter (fun n : Nat => n % 2 = 0) [1, 2, 3, 4, 5, 6]).val
+#eval (verifiedFilter (fun n : Nat => n % 2 = 0) [1, 2, 3, 4, 5, 6]).val
 
 end VerifiedFilter
 
