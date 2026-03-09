@@ -6,6 +6,7 @@ A two-week intensive course on formalized mathematics in Lean 4, held March 2–
 
 ## Announcements
 
+- **2026-03-09:** New addendum: [Prove axiom-free proofs](https://forduniver.github.io/LeanBlockCourse26/addendum/2026-03-09-axiom-provenance) — can you express within Lean's logic that a proof avoids a specific axiom?
 - **2026-03-08:** Updated P02 and P03 exercise files: named theorems are now `example`, with `#check` pointers to the corresponding Mathlib names. Use the Mathlib names in your proofs.
 - **2026-03-08:** New addendum: [`theorem` vs `lemma`](https://forduniver.github.io/LeanBlockCourse26/addendum/2026-03-08-theorem-lemma-example-def).
 - **2026-03-08:** New addendum: [`let` vs `have` in tactic mode](https://forduniver.github.io/LeanBlockCourse26/addendum/2026-03-08-let-vs-have).
