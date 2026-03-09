@@ -8,6 +8,10 @@ The payoff: verified computation with Subtype, axiom tracing with
 import Mathlib.Algebra.BigOperators.Fin
 import Mathlib.Data.Nat.Prime.Basic
 import Mathlib.Tactic.Cases
+import Mathlib.Algebra.BigOperators.Fin
+import Mathlib.Data.Nat.Prime.Basic
+
+open BigOperators Bool Nat
 
 
 
@@ -138,32 +142,131 @@ theorem propFilter_sound (p : α → Prop) [DecidablePred p] (xs : List α) :
      case isFalse h =>
       exact ih hx
 
--- example (p : α → Prop) [DecidablePred p] (xs : List α) :
---     ∀ x ∈ propFilter p xs, p x := by
---   intro x hx
---   induction' xs with y ih
---   · contradiction
---   · unfold propFilter at hx -- optional not optional
---     split at hx
---     by_cases h : p y
---     · cases hx with
---       | head => assumption
---       | tail _ hmem => exact ih hmem
---     · exact ih hx
+theorem propFilter_sound' (p : α → Prop) [DecidablePred p] (xs : List α) :
+    ∀ x ∈ propFilter p xs, p x := by
+  intro x hx
+  induction' xs with y ys ih
+  · contradiction
+  · by_cases h : p y
+    · rw [show propFilter p (y :: ys) = y :: propFilter p ys from if_pos h] at hx
+      obtain _ | ⟨_, hmem⟩ := hx
+      · exact h
+      · exact ih hmem
+    · rw [show propFilter p (y :: ys) = propFilter p ys from if_neg h] at hx
+      exact ih hx
+
+#print axioms propFilter_sound'
 
 -- Step 2b: prove completeness - everyhting not in the output does not satisfy p.
 theorem propFilter_complete (p : α → Prop) [DecidablePred p] (xs : List α) :
-    ∀ x ∉ propFilter p xs, ¬ p x := by
-  sorry
+    ∀ x, x ∈ xs ∧ x ∉ propFilter p xs → ¬ p x := by
+  intro x ⟨x_in_xs, hx⟩ px
+  induction xs with
+  | nil => contradiction
+  | cons y ys ih =>
+      unfold propFilter at *
+      cases x_in_xs with
+       -- `x` is the head of `xs` and not in `ys`
+       | head =>
+          sorry
+       -- `x` is not the head of `xs` and therefore in `ys`
+       | tail _ hmem => 
+          replace ih := ih hmem
+          sorry
 
 -- Step 3: bundle algorithm + proof into Subtype.
 def verifiedFilter (p : α → Prop) [DecidablePred p] (xs : List α) :
-    { ys : List α // (∀ x ∈ ys, p x) ∧ (∀ x ∉ ys, ¬ p x) } :=
-  ⟨propFilter p xs, propFilter_sound p xs, propFilter_complete p xs⟩
+    { ys : List α // ∀ x, (x ∈ ys ∧ p x) ∨ (x ∉ ys ∧ ¬ p x) } := by
+  use propFilter p xs
+  intro x
+  by_cases  h : x ∈ propFilter p xs
+  · left; exact ⟨h, propFilter_sound p xs x h⟩
+  · sorry
+    -- have := propFilter_complete p xs x
+    -- right; exact ⟨h, ⟩
 
 -- #eval (verifiedFilter (fun n : Nat => n % 2 = 0) [1, 2, 3, 4, 5, 6]).val
 
-
-
-
 end VerifiedFilter
+
+
+-- We can turn the proof of the infinitude of primes from P01S04 into a simple verified algorithm
+def exists_infinite_primes_algorithm (n : ℕ) :
+    { p : ℕ // n ≤ p ∧ Nat.Prime p } :=
+  let p := minFac (n ! + 1)
+  have f1 : n ! + 1 ≠ 1 := Nat.ne_of_gt <| succ_lt_succ <| factorial_pos _
+  have pp : Nat.Prime p := minFac_prime f1
+  have np : n ≤ p :=
+    le_of_not_ge fun h =>
+      have h₁ : p ∣ n ! := dvd_factorial (minFac_pos _) h
+      have h₂ : p ∣ 1 := (Nat.dvd_add_iff_right h₁).2 (minFac_dvd _)
+      pp.not_dvd_one h₂
+  ⟨p, np, pp⟩
+
+-- This works ...
+#eval exists_infinite_primes_algorithm 4 
+
+-- ... even though the theorem used axioms ...
+#print axioms exists_infinite_primes_algorithm
+
+-- ... in particular in the definition of  `p` through `minFac` ...
+#print axioms minFac        -- [propext, Classical.choice, Quot.sound]
+
+/-
+... but looking at the code we see that minFac only uses the axioms for
+the proof of `decreasing_by` and the actual core algorithm `minFacAux``
+is purely constructive.
+
+```
+def minFacAux (n : ℕ) : ℕ → ℕ
+  | k =>
+    if n < k * k then n
+    else
+      if k ∣ n then k
+      else
+        minFacAux n (k + 2)
+termination_by k => sqrt n + 2 - k
+decreasing_by simp_wf; apply minFac_lemma n k; assumption
+
+def minFac (n : ℕ) : ℕ :=
+  if 2 ∣ n then 2 else minFacAux n 3
+```
+
+But note that unlike our subtype example, `minFac` does not bundle
+the (to us) relevant property that the output is prime. Instead 
+we had to invoke `minFac_prime`.
+-/
+
+-- Note that these using axioms is not a problem for us:
+#print axioms minFac_prime  -- [propext, Classical.choice, Quot.sound]
+#print axioms minFac_dvd    -- [propext, Classical.choice, Quot.sound]
+#print axioms minFac_pos    -- [propext, Classical.choice, Quot.sound]
+
+#print axioms dvd_factorial         -- propext
+#print axioms Nat.dvd_add_iff_right -- propext
+
+
+/-
+Any axiom is just a `theorem` without a proof or a `def` without an
+implementation. It satisfies the typechecker, but does not produce
+computable code.
+
+```
+axiom myChoice (P : Prop) : P ∨ ¬ P
+```
+
+But we need to  be careful with this, because as soon as we define
+a contradiction, everything collapses:
+
+```
+axiom myFallacy : False
+
+theorem weHaveAProblem : 2 = 3 := by
+  exfalso
+  exact myFallacy 
+```
+-/
+
+#check False
+
+
