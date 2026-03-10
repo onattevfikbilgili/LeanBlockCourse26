@@ -55,8 +55,8 @@ theorem mul_one (n : MyNat) : n * 1 = n := by
 -- hypothesis and `add_zero`.
 theorem zero_mul (n : MyNat) : 0 * n = 0 := by
   induction n with
-  | zero => trivial -- rfl
-  | succ => trivial --expose_names; rw[mul_succ, a_ih]; trivial
+  | zero => trivial
+  | succ => trivial
 
 -- Exercise 2.3 – Successor distributes over multiplication on the left
 -- By induction on `m`. The base case is immediate. For the inductive step,
@@ -65,21 +65,24 @@ theorem zero_mul (n : MyNat) : 0 * n = 0 := by
 -- right-hand side and rearrange with `add_assoc`, `add_succ`, and `add_comm`.
 theorem succ_mul (n m : MyNat) : (succ n) * m = n * m + m := by
   induction m with
-  | zero => rw[← zero_zero, add_zero, mul_zero, mul_zero]
-  | succ => expose_names; rw[add_succ, mul_succ, mul_succ, add_succ, add_assoc, add_comm n a, ← add_assoc, a_ih]
+  | zero => rw [← zero_zero, add_zero, mul_zero, mul_zero]
+  | succ =>
+    expose_names
+    rw [add_succ, mul_succ, mul_succ, add_succ,
+        add_assoc, add_comm n a, ← add_assoc, a_ih]
 
 -- Exercise 2.4 – Commutativity
 -- By induction on `m`. The base case uses `zero_mul`. The inductive step
 -- follows from `succ_mul` and the inductive hypothesis.
 theorem mul_comm (n m : MyNat) : n * m = m * n := by
   induction m with
-  | zero => rw[← zero_zero, mul_zero, zero_mul]
+  | zero => rw [← zero_zero, mul_zero, zero_mul]
   | succ m h => rw [mul_succ, succ_mul, h]
 
 -- Exercise 2.5 – Multiplicative identity on the left
 -- Follows directly from `mul_comm` and `mul_one`.
 theorem one_mul (m : MyNat) : 1 * m = m := by
-  rw [mul_comm, mul_one] -- rw[one_eq_succ_zero, succ_mul, zero_mul, zero_add]
+  rw [mul_comm, mul_one]
 
 -- Exercise 2.6 – Double
 -- Unfold `2` as `succ 1` and apply `succ_mul` and `one_mul`.
@@ -99,7 +102,7 @@ theorem mul_add (n m k : MyNat) : n * (m + k) = n * m + n * k := by
 -- Exercise 2.8 – Left distributivity
 -- Follows from `mul_comm` and `mul_add`.
 theorem add_mul (n m k : MyNat) : (n + m) * k = n * k + m * k := by
-  rw [mul_comm, mul_add, mul_comm n k , mul_comm k m]
+  rw [mul_comm, mul_add, mul_comm n k, mul_comm k m]
 
 -- Exercise 2.9 – Associativity
 -- By induction on `m`. The base case simplifies via `mul_zero` and `zero_mul`.
@@ -107,39 +110,7 @@ theorem add_mul (n m k : MyNat) : (n + m) * k = n * k + m * k := by
 -- inductive hypothesis.
 theorem mul_assoc (n m k : MyNat) : (n * m) * k = n * (m * k) := by
   induction m with
-  | zero => rw [← zero_zero]; repeat rw[zero_mul, mul_zero]; rw[zero_mul]
+  | zero => rw [← zero_zero]; repeat rw [zero_mul, mul_zero]; rw [zero_mul]
   | succ => expose_names; rw [succ_mul, mul_succ, add_mul, mul_add, a_ih]
-
-
-
-def pow (n m : MyNat) : MyNat :=
-  match m with
-  | MyNat.zero => 1
-  | MyNat.succ k => (pow n k) * n
-
--- Allows us to use `^`
-instance instPow : Pow MyNat MyNat where pow := pow
-
-theorem pow_zero (n : MyNat) : n ^ (0 : MyNat) = 1 := rfl
-
-theorem pow_succ (n m : MyNat) : n ^ (succ m) = n ^ m * n := rfl
-
-theorem zero_pow_zero : (0 : MyNat) ^ (0 : MyNat) = 1 := rfl
-
-theorem zero_pow_succ (m : MyNat) : (0 : MyNat) ^ (succ m) = 0 := by sorry
-
-theorem pow_one (n : MyNat) : n ^ (1 : MyNat) = n := by sorry
-
-theorem one_pow (n : MyNat) : (1 : MyNat) ^ n = 1 := by sorry
-
-theorem pow_two (n : MyNat) : n ^ (2 : MyNat) = n * n := by sorry
-
-theorem pow_add (n m k : MyNat) : n ^ (m + k) = n ^ m * n ^ k := by sorry
-
-theorem mul_pow (n m k : MyNat) : (n * m) ^ k = n ^ k * m ^ k := by sorry
-
-theorem pow_pow (n m k : MyNat) : (n ^ m) ^ k = n ^ (m * k) := by sorry
-
--- State (and prove?) Fermat's Last Theorem
 
 end MyNat
