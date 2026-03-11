@@ -124,4 +124,23 @@ theorem fermats_last_theorem (x y z m : MyNat)
     x^m + y^m ≠ z^m := by
   sorry
 
+/-
+# Tactic Addendum: `simp`
+=====================
+
+Many of the proofs above were tedious — long `rw` chains rearranging terms
+via associativity and commutativity, with no deep mathematical insight.
+The following rearrangement of 8 variables illustrates the problem. `#golf`
+your solution and try to make the *term mode* as compact as possible.
+-/
+
+example (a b c d e f g h : MyNat) :
+    (d + f) + (h + (a + c)) + (g + e + b) = a + b + c + d + e + f + g + h := by
+  sorry
+
+
+
+
+
+
 end MyNat
